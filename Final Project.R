@@ -4,6 +4,20 @@ getwd()
 #Setting the location
 setwd("/Users/jagratisharma/Desktop/Data\ Analytics")
 
+library(ggplot2)
+library(lattice)
+library(caret)
+library(DataExplorer)
+library(caTools)
+require(graphics)
+library(ggplot2)
+library(randomForest)
+library(tree)
+library("visNetwork")
+library("sparkline")
+library(rpart)
+library(rpart.plot)
+library(C50)
 
 #Loading the data
 cpudata<-read.csv("Dataset.csv", sep = " ", header = FALSE)
@@ -307,8 +321,6 @@ newdata$sysgroup<-factor(newdata$sysgroup)
 #Cluster Analysis 
 pairs(cpudata.subset)
 
-
-library(DataExplorer)
 plot_correlation(cpudata)
 
 #Normalizing hte data
@@ -377,8 +389,7 @@ biplot(pc, main="PCA",ellipse=TRUE, groups=d$fork)
 
 #Partitioning data into testing and traininf set for Modelling using cpudata(
 #this is without factor)
-library(caTools)
-set.seed(500)
+
 split=sample.split(cpudata$sys,SplitRatio=0.8)
 
 training_set=subset(cpudata,split==TRUE)
@@ -575,13 +586,12 @@ plot(regressor)
 confint(regressor)
 sigma(regressor)/mean(testing_set$sys)
 
-require(graphics)
+
 qqnorm(cpudata$sys)
 qqline(cpudata$sys)
 ?qqnorm
 
 
-library(ggplot2)
 ggplot(training_set,aes(y=ypredict,x=training_set$sys))+geom_point()+geom_smooth(method="lm")
 #remove: atch,freeswap and lwrite
 
@@ -667,7 +677,7 @@ confusionMatrix(predictions, testing_setf$sysgroup)
 #                            RANDOM FOREST 
 ################################################################################
 
-library(randomForest)
+
 set.seed(1234)
 randomF1 = randomForest(sysgroup~., data = training_setf, importance = TRUE)
 print(cpudata.subset$sys)
@@ -713,14 +723,12 @@ confusionMatrix(predictions, testing_setf$sysgroup)
 #                                     TREE
 ################################################################################
 
-library(tree)
 model_tree <- tree(sys ~ . , data = training_set)
 summary(model_tree)
 plot(model_tree, main="Tree")
 text(model_tree, pretty = 0, cex = 0.8)
 
 
-library(tree)
 model_tree <- tree(sysgroup ~ . , data = training_setf)
 summary(model_tree)
 plot(model_tree)
@@ -733,10 +741,7 @@ text(model_tree, pretty = 0, cex = 0.8)
 
 
 #using RPART
-library("visNetwork")
-library("sparkline")
-library(rpart)
-library(rpart.plot)
+
 # generate the decision tree model
 dectionTreeModel <- rpart(sys~., training_set)
 summary(cpudata.subset)
@@ -745,10 +750,7 @@ rpart.plot(dectionTreeModel)
 visTree(dectionTreeModel)
 
 
-library("visNetwork")
-library("sparkline")
-library(rpart)
-library(rpart.plot)
+
 # generate the decision tree model
 dectionTreeModel <- rpart(sysgroup~., training_setf)
 dectionTreeModel
@@ -764,7 +766,7 @@ confusionMatrix(predict.decision,testing_setf$sysgroup)
 
 
 ## Building the Classification Tree Models using the Quinlan's C5.0 algorithm
-library(C50)
+
 c50.fit  <- C5.0(x=training_setf, y=training_setf$sysgroup, trials = 10)
 summary(c50.fit)
 plot(c50.fit)
@@ -784,10 +786,6 @@ confusionMatrix(c50.fit.pred, testing_setf$sysgroup)
 
 # https://machinelearningmastery.com/machine-learning-in-r-step-by-step/
 
-#install.packages("caret", dependencies=c("Depends", "Suggests"))
-library(ggplot2)
-library(lattice)
-library(caret)
 
 ################################################################################
 #                                  LDA 
@@ -796,6 +794,7 @@ library(caret)
 control<-trainControl(method = "cv",number=10)
 metric<-"Accuracy"
 set.seed(7)
+
 library(lda)
 fit.lda <- train(sysgroup~., data=training_setf, method="lda", metric=metric,
                  preProc=c("center", "scale"), trControl=control)
