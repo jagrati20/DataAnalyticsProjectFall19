@@ -13,11 +13,12 @@ require(graphics)
 library(ggplot2)
 library(randomForest)
 library(tree)
-library("visNetwork")
-library("sparkline")
+library(visNetwork)
+library(sparkline)
 library(rpart)
 library(rpart.plot)
 library(C50)
+library(MASS)
 
 #Loading the data
 cpudata<-read.csv("Dataset.csv", sep = " ", header = FALSE)
@@ -27,6 +28,7 @@ names(cpudata) <- c("time","lread","lwrite","scall","sread","swrite","fork","exe
                        "ppgin","pflt","vflt","runqsz","runocc","freemem","freeswap","usr","sys",
                        "wio","idle")
 View(cpudata)
+#removing the column with all NA values
 cpudata<-cpudata[,-28]
 
 str(cpudata)
@@ -268,8 +270,6 @@ heatmap(as.matrix(cpudata.subset),
         main = "Characteristics of CPUDATA",
         Rowv = NA,Colv = NA)
 
-
-
 #storing data to a new dataset as cpudatanew and converitng the SYS column to factor
 newdata<-cpudata
 attach(newdata)
@@ -308,15 +308,6 @@ View(newdata)
 unique(newdata$sysgroup)
 #making the new variable as a factor
 newdata$sysgroup<-factor(newdata$sysgroup)
-
-#cpudatanew<-cpudata
-#cpudatanew[,24]<-as.factor(cpudata[,24])
-#View(cpudatanew)
-
-#Not Ran yet
-#Copying data to new variable and removing all zeros
-#cpudatanew<-cpudatanew[!(cpudatanew$sys == 0),]
-
 
 #Cluster Analysis 
 pairs(cpudata.subset)
@@ -400,9 +391,7 @@ testing_set=subset(cpudata,split==FALSE)
 #                  Multivariate LINEAR Regression
 ################################################################################
 
-
 #Applying multivariate regression using forward regression
-
 regressor=lm(formula = training_set$sys~training_set$lread,data = training_set)
 summary(regressor)
 
@@ -614,8 +603,6 @@ cpudata.subset.f <- newdata.subset
 cpudata.subset.f<-cpudata.subset.f[,-15]
 View(cpudata.subset.f)
 
-
-
 #updating training and testing datasets
 
 set.seed(1234)
@@ -688,11 +675,6 @@ plot(randomF2)
 randomF2.pred <- predict(randomF2, newdata=testing_setf,type = "class")
 randomF2.pred
 confusionMatrix(randomF2.pred,testing_setf$sysgroup)
-
-# Checking classification accuracy
-#library(caret)
-#print(postResample(pred = rffit2.pred, obs = testing_set$sys))
-#confusionMatrix(rffit2.pred,sys)
 importance(randomF2)
 varImpPlot(randomF2)
 
@@ -713,11 +695,6 @@ fit.rf <- train(sysgroup~., data=training_setf, method="rf", metric=metric, trCo
 print(fit.rf)
 predictions <- predict(fit.rf, testing_setf)
 confusionMatrix(predictions, testing_setf$sysgroup)
-
-
-
-
-#roccurve
 
 ################################################################################
 #                                     TREE
@@ -777,13 +754,12 @@ confusionMatrix(c50.fit.pred, testing_setf$sysgroup)
 
 
 ################################################################################
-#                               Using Caret library
+#               Using Caret library/Multi-models
 ################################################################################
 
 
 
 #using various forms in similar approach
-
 # https://machinelearningmastery.com/machine-learning-in-r-step-by-step/
 
 
